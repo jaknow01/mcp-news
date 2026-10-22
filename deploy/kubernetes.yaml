@@ -1,0 +1,42 @@
+# mcp-news on k3s. Create the Secrets first:
+#   kubectl -n mcp create secret generic mcp-news-env --from-env-file=.env
+#   kubectl -n mcp create secret generic mcp-news-clients --from-file=clients.yaml=config/clients.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-news
+  namespace: mcp
+  labels: {app: mcp-news}
+spec:
+  replicas: 1                      # rate limits/caches are per process
+  selector:
+    matchLabels: {app: mcp-news}
+  template:
+    metadata:
+      labels: {app: mcp-news}
+    spec:
+      containers:
+        - name: mcp-news
+          image: ghcr.io/jaknow01/mcp-news:v0.1.0
+          args: ["serve"]
+          ports: [{containerPort: 8010, name: http}]
+          envFrom: [{secretRef: {name: mcp-news-env}}]
+          env: [{name: MCP_CLIENTS_CONFIG, value: /config/clients.yaml}]
+          volumeMounts: [{name: clients, mountPath: /config, readOnly: true}]
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 30}
+          resources:
+            requests: {cpu: 20m, memory: 96Mi}
+            limits: {memory: 384Mi}
+      volumes:
+        - name: clients
+          secret: {secretName: mcp-news-clients}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-news
+  namespace: mcp
+spec:
+  selector: {app: mcp-news}
+  ports: [{name: http, port: 80, targetPort: http}]

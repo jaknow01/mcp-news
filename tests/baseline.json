@@ -1,0 +1,39 @@
+{
+  "agent": "news_agent",
+  "tools": [
+    {
+      "name": "search_news",
+      "description": "search_news(query: str, topic: Literal['news', 'finance'], search_depth: Literal['basic', 'advanced'] = 'advanced') -> dict\n\nDescription:\n    This tool is used to crawl through varius reputable news sources in search for current and historical events to\n    find an answer to the user's query.\n\nParameters:\nctx : Context\n    Context in which the tool operates\n\nquery: str\n    Defines the matter or event that interests the user. Should be structured in natural language\n    and reflect exactly what the user wants to know.\n    For better search results this parameter\n    **must** be written entirely in english as it's the most optimal language for the search engine\n\ntopic: Literal[\"news\", \"finance\"]\n    Controls what is the general topic of the user's query. All political, sports, history-related etc. queries should be designated as 'news'\n    wheras all stock market, commodities, currencies, cryptocurrencies related queries etc. should be treated as 'finance'\n\nsearch_depth: Literal[\"basic\", \"advanced\"] = \"advanced\"\n    The level of detail that should be extracted by the search engine.\n    Value 'basic' should be used when user requests a quick and short summary - should only\n    be used when user clearly asks for a short anwser.\n    Value 'advanced' is the default value which provides more details.",
+      "input_schema": {
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "topic": {
+            "enum": [
+              "news",
+              "finance"
+            ],
+            "title": "Topic",
+            "type": "string"
+          },
+          "search_depth": {
+            "default": "advanced",
+            "enum": [
+              "basic",
+              "advanced"
+            ],
+            "title": "Search Depth",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "topic"
+        ],
+        "type": "object"
+      }
+    }
+  ]
+}
